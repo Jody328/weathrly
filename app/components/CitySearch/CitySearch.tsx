@@ -10,7 +10,7 @@ interface CitySearchProps {
   isLoading: boolean;
 }
 
-export const CitySearch = ({ onCitySelect, isLoading }: CitySearchProps) => {
+export const CitySearch = ({ onCitySelect }: CitySearchProps) => {
   const {
     inputValue,
     suggestions,
