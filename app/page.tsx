@@ -42,7 +42,7 @@ export default function WeatherPage() {
         </motion.div>
 
         <motion.div variants={itemVariants} className="w-full max-w-md">
-          <CitySearch onCitySelect={fetchForCity} isLoading={isLoading} />
+          <CitySearch onCitySelect={fetchForCity} />
         </motion.div>
 
         <div className="flex items-center justify-center mt-4 w-full max-w-md min-h-[250px] rounded-2xl border border-white/30 bg-white/50 p-6 shadow-xl backdrop-blur-lg">

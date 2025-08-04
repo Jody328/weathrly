@@ -7,7 +7,6 @@ import { Search } from "lucide-react";
 
 interface CitySearchProps {
   onCitySelect: (city: string) => void;
-  isLoading: boolean;
 }
 
 export const CitySearch = ({ onCitySelect }: CitySearchProps) => {
@@ -16,10 +15,13 @@ export const CitySearch = ({ onCitySelect }: CitySearchProps) => {
     suggestions,
     isSuggestionsVisible,
     activeIndex,
+    suggestionsTitle,
+    rootRef,
     setInputValue,
     setActiveIndex,
     updateSuggestions,
     reset,
+    showPopularCities, // Get the new function from the hook
   } = useAutocomplete();
 
   const handleSelect = (city: string) => {
@@ -29,6 +31,11 @@ export const CitySearch = ({ onCitySelect }: CitySearchProps) => {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && activeIndex > -1) {
+      e.preventDefault();
+      handleSelect(suggestions[activeIndex].city);
+      return;
+    }
     if (!isSuggestionsVisible) return;
     switch (e.key) {
       case "ArrowDown":
@@ -41,40 +48,29 @@ export const CitySearch = ({ onCitySelect }: CitySearchProps) => {
         e.preventDefault();
         setActiveIndex((prev) => (prev > 0 ? prev - 1 : 0));
         break;
-      case "Enter":
-        if (activeIndex > -1) {
-          e.preventDefault();
-          handleSelect(suggestions[activeIndex].city);
-        }
-        break;
       case "Escape":
         reset();
         break;
     }
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (inputValue) {
-      handleSelect(inputValue);
-    }
-  };
-
   return (
-    <div className="relative w-full max-w-md">
-      <form onSubmit={handleSubmit} className="relative">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-
+    // Attach the ref from the hook to the root element
+    <div className="relative w-full max-w-md" ref={rootRef}>
+      <div className="relative">
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
         <input
           type="text"
           value={inputValue}
           onChange={(e) => updateSuggestions(e.target.value)}
           onKeyDown={handleKeyDown}
+          onFocus={showPopularCities} // --- NEW: Trigger on focus ---
           placeholder="Search for a city..."
           autoComplete="off"
-          className="w-full rounded-[20px] border border-gray-200 bg-white/80 py-3 pl-12 pr-6 text-gray-800 shadow-sm backdrop-blur-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="w-full rounded-full border border-gray-200 bg-white/80 py-3 pl-12 pr-6 text-gray-800 shadow-sm backdrop-blur-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
         />
-      </form>
+      </div>
+
       {isSuggestionsVisible && (
         <motion.ul
           initial={{ opacity: 0, y: -10 }}
@@ -82,6 +78,10 @@ export const CitySearch = ({ onCitySelect }: CitySearchProps) => {
           exit={{ opacity: 0, y: -10 }}
           className="absolute top-full z-10 mt-2 w-full overflow-hidden rounded-lg border border-gray-200 bg-white/80 shadow-lg backdrop-blur-sm"
         >
+          <li className="px-4 pt-2 pb-1 text-xs font-semibold uppercase text-gray-400">
+            {suggestionsTitle}
+          </li>
+
           {suggestions.map((city, index) => (
             <li
               key={`${city.city}-${index}`}
