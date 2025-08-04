@@ -2,6 +2,10 @@
 
 A clean, modern weather application built with Next.js and Tailwind CSS. This project allows users to search for a city and view its current weather conditions, focusing on a great user experience and robust code quality.
 
+### Live Demo
+
+https://weathrly-sigma.vercel.app/
+
 ## Features
 
 - **City Search**: Real-time weather data for any city.
