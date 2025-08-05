@@ -1,13 +1,29 @@
 "use client";
 
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import clsx from "clsx";
+import { Send } from "lucide-react";
 import { CitySearch } from "./components/CitySearch/CitySearch";
 import { StatusDisplay } from "./components/common/StatusDisplay";
 import { WeatherDisplay } from "./components/WeatherDisplay/WeatherDisplay";
 import { useWeather } from "./hooks/useWeather";
 
+const VALID_CITY_REGEX = /^[\p{L}\s'-]+$/u;
+
 export default function WeatherPage() {
   const { weather, isLoading, isError, error, fetchForCity } = useWeather();
+  const [currentInput, setCurrentInput] = useState("");
+
+  const isInputValid =
+    currentInput === "" || VALID_CITY_REGEX.test(currentInput);
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (currentInput && isInputValid) {
+      fetchForCity(currentInput);
+    }
+  };
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -41,9 +57,32 @@ export default function WeatherPage() {
           </p>
         </motion.div>
 
-        <motion.div variants={itemVariants} className="w-full max-w-md">
-          <CitySearch onCitySelect={fetchForCity} />
-        </motion.div>
+        <motion.form
+          onSubmit={handleSubmit}
+          variants={itemVariants}
+          className="flex w-full max-w-md items-start gap-2"
+        >
+          <div className="flex-grow">
+            <CitySearch
+              onCitySelect={setCurrentInput}
+              onInputChange={setCurrentInput}
+              isLoading={isLoading}
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={!currentInput || !isInputValid || isLoading}
+            className={clsx(
+              "flex h-[50px] w-[50px] items-center justify-center rounded-full font-semibold text-white shadow-sm transition-all duration-200",
+              {
+                "bg-blue-500 hover:bg-blue-600": !isLoading && isInputValid,
+                "bg-gray-400 cursor-not-allowed": isLoading || !isInputValid,
+              }
+            )}
+          >
+            <Send size={20} />
+          </button>
+        </motion.form>
 
         <div className="flex items-center justify-center mt-4 w-full max-w-md min-h-[250px] rounded-2xl border border-white/30 bg-white/50 p-6 shadow-xl backdrop-blur-lg">
           <AnimatePresence mode="wait">

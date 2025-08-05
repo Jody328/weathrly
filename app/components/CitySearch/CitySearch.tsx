@@ -2,20 +2,27 @@
 
 import { useAutocomplete } from "@/app/hooks/useAutocomplete";
 import clsx from "clsx";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Search } from "lucide-react";
 
 interface CitySearchProps {
   onCitySelect: (city: string) => void;
+  onInputChange: (value: string) => void;
+  isLoading: boolean;
 }
 
-export const CitySearch = ({ onCitySelect }: CitySearchProps) => {
+export const CitySearch = ({
+  onCitySelect,
+  onInputChange,
+  isLoading,
+}: CitySearchProps) => {
   const {
     inputValue,
     suggestions,
     isSuggestionsVisible,
     activeIndex,
     suggestionsTitle,
+    validationError,
     rootRef,
     setInputValue,
     setActiveIndex,
@@ -24,17 +31,25 @@ export const CitySearch = ({ onCitySelect }: CitySearchProps) => {
     showPopularCities,
   } = useAutocomplete();
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    updateSuggestions(value);
+    onInputChange(value);
+  };
+
   const handleSelect = (city: string) => {
     setInputValue(city);
+    onInputChange(city);
     onCitySelect(city);
     reset();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && activeIndex > -1) {
-      e.preventDefault();
-      handleSelect(suggestions[activeIndex].city);
-      return;
+    if (e.key === "Enter") {
+      if (isSuggestionsVisible) e.preventDefault();
+      if (activeIndex > -1) {
+        handleSelect(suggestions[activeIndex].city);
+      }
     }
     if (!isSuggestionsVisible) return;
     switch (e.key) {
@@ -61,42 +76,58 @@ export const CitySearch = ({ onCitySelect }: CitySearchProps) => {
         <input
           type="text"
           value={inputValue}
-          onChange={(e) => updateSuggestions(e.target.value)}
+          onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           onFocus={showPopularCities}
           placeholder="Search for a city..."
           autoComplete="off"
-          className="w-full rounded-full border border-gray-200 bg-white/80 py-3 pl-12 pr-6 text-gray-800 shadow-sm backdrop-blur-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          disabled={isLoading}
+          className="w-full rounded-full border border-gray-200 bg-white/80 py-3 pl-12 pr-6 text-gray-800 shadow-sm backdrop-blur-sm transition-colors focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-200/50 disabled:cursor-not-allowed"
         />
       </div>
 
-      {isSuggestionsVisible && (
-        <motion.ul
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          className="absolute top-full z-10 mt-2 w-full overflow-hidden rounded-lg border border-gray-200 bg-white/80 shadow-lg backdrop-blur-sm"
-        >
-          <li className="px-4 pt-2 pb-1 text-xs font-semibold uppercase text-gray-400">
-            {suggestionsTitle}
-          </li>
+      <AnimatePresence>
+        {validationError && (
+          <motion.p
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="mt-1 pl-4 text-xs font-medium text-red-500"
+          >
+            {validationError}
+          </motion.p>
+        )}
+      </AnimatePresence>
 
-          {suggestions.map((city, index) => (
-            <li
-              key={`${city.city}-${index}`}
-              onClick={() => handleSelect(city.city)}
-              className={clsx(
-                "cursor-pointer px-4 py-2 text-gray-700 transition-colors duration-150",
-                { "bg-blue-500/10": index === activeIndex },
-                "hover:bg-blue-500/10"
-              )}
-            >
-              {city.city},{" "}
-              <span className="font-light text-gray-500">{city.country}</span>
+      <AnimatePresence>
+        {isSuggestionsVisible && (
+          <motion.ul
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -5 }}
+            className="absolute top-full z-10 mt-2 w-full overflow-hidden rounded-lg border border-gray-200 bg-white/80 shadow-lg backdrop-blur-sm"
+          >
+            <li className="px-4 pt-2 pb-1 text-xs font-semibold uppercase text-gray-400">
+              {suggestionsTitle}
             </li>
-          ))}
-        </motion.ul>
-      )}
+
+            {suggestions.map((city, index) => (
+              <li
+                key={`${city.city}-${index}`}
+                onClick={() => handleSelect(city.city)}
+                className={clsx(
+                  "cursor-pointer px-4 py-2 text-gray-700 transition-colors duration-150",
+                  { "bg-blue-500/10": index === activeIndex },
+                  "hover:bg-blue-500/10"
+                )}
+              >
+                {city.city},{" "}
+                <span className="font-light text-gray-500">{city.country}</span>
+              </li>
+            ))}
+          </motion.ul>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

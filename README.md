@@ -50,11 +50,12 @@ The application displays temperature in **Celsius (°C)**.
     npm install
     ```
 
-3.  **Configure environment variables:**
+3.  **Configure environment variables (Crucial Step):**
     Create a file named `.env.local` in the project root. Add your API key like so:
     ```
     # .env.local
     OPENWEATHER_API_KEY="PASTE_YOUR_API_KEY_HERE"
+    OPENWEATHER_API_BASE_URL="https://api.openweathermap.org"
     ```
 
 ### 3. Run the App
@@ -76,6 +77,10 @@ To prevent exposing the API key to the client, all calls to the OpenWeatherMap A
 ### Autocomplete Search
 
 The city input field features an autocomplete dropdown that suggests cities as you type. This list is populated from a local JSON file containing major cities in South Africa. Users can navigate the suggestions with arrow keys and select a city with the Enter key or a mouse click.
+
+### Configuration Management
+
+All external service details, including the secret API key and the API base URL, are stored in environment variables. This ensures a strict separation between code and configuration, making the application more secure and easily deployable to different environments (development, staging, production).
 
 ### (Bonus) Why TanStack Query?
 
